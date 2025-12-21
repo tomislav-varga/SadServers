@@ -65,7 +65,7 @@ tmpfs            233M     0  233M   0% /sys/fs/cgroup
 /dev/nvme1n1p15  124M  278K  124M   1% /boot/efi
 /dev/nvme0n1     8.0G  8.0G   28K 100% /opt/pgdata #This is the problematic mount point
 tmpfs             47M     0   47M   0% /run/user/1000
-````
+```
 The /opt/pgdata mount point is 100% full, which prevents Postgres from writing data to its data directory.
 ## Solution Steps
 1. **Free Up Space on /opt/pgdata**:
