@@ -142,7 +142,7 @@ ExecStart=/usr/local/bin/gunicorn \
    sudo systemctl daemon-reload
    sudo systemctl restart gunicorn.service
    ```
-5. Lastly, **WSGI Python file** contains a unnecassary header `Content-Length: 0`, it should be removed to properly send the response body.:
+5. Lastly, **WSGI Python file** contains an error in the `application` function. The `Content-Length` header should be removed before returning from the response headers:
   ```python
   def application(environ, start_response):
     start_response('200 OK', [('Content-Type', 'text/html'), ('Content-Length', '0'), ])
