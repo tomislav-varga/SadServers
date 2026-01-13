@@ -15,12 +15,21 @@ psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" 
         Is the server running locally and accepting connections on that socket?
 ```
 ## Problem Analysis
+Output of the insert command:
+```bash
+sudo -u postgres psql -c "insert into persons(name) values ('jane smith');" -d dt
+psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: No such file or directory
+        Is the server running locally and accepting connections on that socket?
+```
+
 ### Potential Causes
 1. **PostgreSQL Service Not Running**: The error message indicates that the client cannot connect to the server, which may be because the PostgreSQL service is not running.
 2. **Disk Space Issues**: If the disk where PostgreSQL is trying to write data is full, it may prevent the server from starting or accepting connections.
 3. **Configuration Issues**: Incorrect configuration settings in the PostgreSQL configuration files could prevent the server from starting properly.
 4. **Permission Issues**: The PostgreSQL user may not have the necessary permissions to access the data directory or other required files.
+
 ### Root Cause
+**Disk Space Issues**: The PostgreSQL service is failing to start because the disk where its data directory is located is full, preventing it from creating necessary files.
 Revealed after running the command:
 ```bash
 sudo systemctl start postgres*
@@ -51,7 +60,7 @@ Dec 16 12:16:14 i-0c1675530628264d8 systemd[1]: Failed to start PostgreSQL Clust
 -- Subject: A start job for unit postgresql@14-main.service has failed
 -- Defined-By: systemd
 -- Support: https://www.debian.org/support
-````
+```
 The root cause is "No space left on device" error when Postgres tries to create its lock file.
 ```bash
 df -h
@@ -67,26 +76,58 @@ tmpfs            233M     0  233M   0% /sys/fs/cgroup
 tmpfs             47M     0   47M   0% /run/user/1000
 ```
 The /opt/pgdata mount point is 100% full, which prevents Postgres from writing data to its data directory.
+
 ## Solution Steps
 1. **Free Up Space on /opt/pgdata**:
-   - Identify and remove unnecessary files or move them to another location with sufficient space.
-   - You can use commands like `du -sh /opt/pgdata/*` to identify large files or directories.
-   - Once the space is freed up, you can restart the Postgres service:
-     ```bash
-     sudo systemctl start postgresql
-     ```        
+  - Identify and remove unnecessary files or move them to another location with sufficient space.
+  - Run `sudo du -sh /opt/pgdata/*` to identify large files or directories:
+```bash
+  sudo du -sh /opt/pgdata/*
+  4.0K    /opt/pgdata/deleteme
+  7.0G    /opt/pgdata/file1.bk
+  923M    /opt/pgdata/file2.bk
+  488K    /opt/pgdata/file3.bk
+  50M     /opt/pgdata/main
+  ```
+  - Remove or move large unnecessary files`:
+```bash
+  sudo rm /opt/pgdata/file1.bk
+  sudo rm /opt/pgdata/file2.bk
+  ```
+  - Once the space is freed up, you can restart the Postgres service:
+```bash
+  sudo systemctl restart postgresql
+  ```        
 2. **Verify PostgreSQL Service Status**:
-        - Check if the PostgreSQL service is running:
-          ```bash
-          sudo systemctl status postgresql
-          ```
-        - Ensure there are no errors in the logs:
-          ```bash
-          sudo journalctl -u postgresql
-          ```
-3. **Test Data Insertion**:
+  - Check if the PostgreSQL service is running:
+```bash
+  sudo systemctl status postgresql
+  ● postgresql.service - PostgreSQL RDBMS
+   Loaded: loaded (/lib/systemd/system/postgresql.service; enabled; vendor preset: enabled)
+   Active: active (exited) since Tue 2026-01-13 07:30:43 UTC; 14s ago
+  Process: 1000 ExecStart=/bin/true (code=exited, status=0/SUCCESS)
+  Main PID: 1000 (code=exited, status=0/SUCCESS)
+
+  Jan 13 07:30:43 i-03ad436595fc8adc6 systemd[1]: Starting PostgreSQL RDBMS...
+  Jan 13 07:30:43 i-03ad436595fc8adc6 systemd[1]: Started PostgreSQL RDBMS.
+  ```
+  - Ensure there are no errors in the logs:
+```bash
+  sudo journalctl -u postgresql
+  -- Logs begin at Tue 2026-01-13 07:22:57 UTC, end at Tue 2026-01-13 07:31:43 UTC. --
+  Jan 13 07:23:53 i-03ad436595fc8adc6 systemd[1]: Starting PostgreSQL RDBMS...
+  Jan 13 07:23:53 i-03ad436595fc8adc6 systemd[1]: Started PostgreSQL RDBMS.
+  Jan 13 07:30:41 i-03ad436595fc8adc6 systemd[1]: postgresql.service: Succeeded.
+  Jan 13 07:30:41 i-03ad436595fc8adc6 systemd[1]: Stopped PostgreSQL RDBMS.
+  Jan 13 07:30:41 i-03ad436595fc8adc6 systemd[1]: Stopping PostgreSQL RDBMS...
+  Jan 13 07:30:43 i-03ad436595fc8adc6 systemd[1]: Starting PostgreSQL RDBMS...
+  Jan 13 07:30:43 i-03ad436595fc8adc6 systemd[1]: Started PostgreSQL RDBMS.
+  ```
+
+## Verification
+Rerun the insert command to verify that data can now be written to the database:
 ```bash
 sudo -u postgres psql -c "insert into persons(name) values ('jane smith');" -d dt
 INSERT 0 1
 ```   
-4. **Verify Data Insertion**:- If the insert command returns `INSERT 0 1`, the issue is resolved`
+If the insert command returns `INSERT 0 1`, the issue is resolved`
