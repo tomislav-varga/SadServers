@@ -19,6 +19,7 @@ Below is a list of all available solutions. Each folder contains detailed docume
 13. [Ivujivik: Parlez-vous Français?](realistic-interviews-scenarios/13-Ivujivik:%20Parlez-vous%20Français%3F)
 14. [Buenos Aires: Kubernetes Pod Crashing](realistic-interviews-scenarios/14-Buenos%20Aires:%20Kubernetes%20Pod%20Crashing)
 15. [Tarifa: Between Two Seas](realistic-interviews-scenarios/15-Tarifa:%20Between%20Two%20Seas)
+16. [Warsaw: Prometheus can't scrape the webserver](realistic-interviews-scenarios/16-Warsaw:%20Prometheus%20can't%20scrape%20the%20webserver)
 
 ## About
 
