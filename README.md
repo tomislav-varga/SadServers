@@ -20,6 +20,8 @@ Below is a list of all available solutions. Each folder contains detailed docume
 14. [Buenos Aires: Kubernetes Pod Crashing](realistic-interviews-scenarios/14-Buenos%20Aires:%20Kubernetes%20Pod%20Crashing)
 15. [Tarifa: Between Two Seas](realistic-interviews-scenarios/15-Tarifa:%20Between%20Two%20Seas)
 16. [Warsaw: Prometheus can't scrape the webserver](realistic-interviews-scenarios/16-Warsaw:%20Prometheus%20can't%20scrape%20the%20webserver)
+17. [Moyogalpa: Security Snag. The Trials of Mary and John](realistic-interviews-scenarios/17-Moyogalpa:%20Security%20Snag.%20The%20Trials%20of%20Mary%20and%20John)
+18. [Helsingør: The first walls of postgres physical replication](realistic-interviews-scenarios/18-Helsingør:%20The%20first%20walls%20of%20postgres%20physical%20replication)
 
 ## About
 
