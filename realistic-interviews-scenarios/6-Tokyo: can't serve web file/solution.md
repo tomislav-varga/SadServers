@@ -1,6 +1,8 @@
-# Solution for "Can't Serve Web File" in Tokyo Scenario
+# Solution for Tokyo: can't serve web file
 ## Description:
-There's a web server serving a file /var/www/html/index.html with content "hello sadserver" but when we try to check it locally with an HTTP client like curl 127.0.0.1:80, nothing is returned. This scenario is not about the particular web server configuration and you only need to have general knowledge about how web servers work.
+There's a web server serving a file /var/www/html/index.html with content "hello sadserver" but when we try to check it locally with an HTTP client like curl 127.0.0.1:80, nothing is returned. 
+
+This scenario is not about the particular web server configuration and you only need to have general knowledge about how web servers work.
 
 ## Problem Analysis
 ### Potential Causes
@@ -9,7 +11,7 @@ There's a web server serving a file /var/www/html/index.html with content "hello
 3. **Incorrect File Permissions**: The web server may not have the necessary permissions to read the index.html file.
 4. **Misconfigured Web Server**: The web server may be misconfigured, preventing it from serving files correctly.
 ### Root Cause
-1. Firewall blocking port 80.
+**1. Firewall blocking port 80.**
 Revealed after running the command:
 ```bash
 sudo iptables -L
@@ -71,7 +73,8 @@ curl -v 127.0.0.1:80
 ```
 The web server is now responding, but we get a 403 Forbidden error, which indicates access permission issues. To fix this, we need to ensure that the web server has the correct permissions to read the index.html file.
 This leads us to the second potential cause:
-2. Incorrect File Permissions.
+
+**2. Incorrect File Permissions.**
 Revealed after running the command:
 ```bash
 ls -la /var/www/html
