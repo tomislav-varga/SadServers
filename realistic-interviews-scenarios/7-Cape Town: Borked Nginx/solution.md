@@ -8,8 +8,8 @@ There's an Nginx web server installed and managed by systemd. Running curl -I 12
 2. **Firewall Blocking Port 80**: A firewall may be blocking incoming connections on port 80, preventing access to the Nginx server.
 3. **Nginx Configuration Issues**: There may be issues with the Nginx configuration files that prevent the server from starting properly.
 
-## Root Cause
-1. Checking the status of the Nginx service reveals that it has failed to start due to syntax errors in the configuration file.
+### Root Cause
+**1. Syntax Errors in the Nginx Configuration File** Checking the status of the Nginx service reveals that it has failed to start due to syntax errors in the configuration file.
 ```bash
 admin@i-07534170c66bba5dc:~$ sudo systemctl status nginx
 ● nginx.service - The NGINX HTTP and reverse proxy server
@@ -25,7 +25,7 @@ Dec 18 08:24:01 i-07534170c66bba5dc systemd[1]: nginx.service: Failed with resul
 Dec 18 08:24:01 i-07534170c66bba5dc systemd[1]: Failed to start The NGINX HTTP and reverse proxy server.
 ```
 
-2. Maximum number of File Descriptors reached. The service unit file has a LimitNOFILE setting of 10, which is too low for Nginx to operate correctly.
+**2. Maximum number of File Descriptors reached** The service unit file has a LimitNOFILE setting of 10, which is too low for Nginx to operate correctly.
 ```bash
 less /var/log/nginx/error.log
 2022/09/11 16:26:27 [crit] 5801#5801: *23 open() "/var/www/html/index.nginx-debian.html" failed (24: Too many open files), client: 127.0.0.1, server: _, request: "GET / HTTP/1.1", host: "localhost:80"
@@ -41,6 +41,7 @@ cat /proc/$(pgrep nginx)/limits | grep "Max open files"
 Max open files            10                 10                 files
 ```
 The unexpected semicolon in the Nginx configuration file and the low LimitNOFILE setting are the root causes preventing Nginx from starting and serving requests.
+
 ## Solution Steps
 1. **Delete the semi-colon in the Nginx configuration file**:
    - Open the file /etc/nginx/sites-enabled/default in a text editor with sudo privileges.
@@ -48,7 +49,7 @@ The unexpected semicolon in the Nginx configuration file and the low LimitNOFILE
    - Save and close the file.
    - Restart the Nginx service with `sudo systemctl restart
 2. **Increase the LimitNOFILE setting in the Nginx service unit**:
-   - Open the file /lib/systemd/system/nginx.service
+   - Open the file /etc/systemd/system/nginx.service in a text editor with sudo privileges.
    - Locate the line that starts with LimitNO
    - Change the value from 10 to 10240
    - Save and close the file.
@@ -57,4 +58,4 @@ The unexpected semicolon in the Nginx configuration file and the low LimitNOFILE
 3. **Verify the Nginx service is running**:
    - Check the status of the Nginx service with `sudo systemctl status nginx`
    - Ensure that it is active and running without errors.
-   - Test the Nginx server by running `curl -I localhost:80` to confirm that it    returns the default Nginx page.
+   - Test the Nginx server by running `curl -I localhost:80` to confirm that it returns the default Nginx page.
