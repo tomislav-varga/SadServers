@@ -18,25 +18,11 @@ sudo systemctl status nginx
      Active: inactive (dead)
        Docs: man:nginx(8)
 ```
-
-2. The Nginx configuration file is incorrectly pointing to `gunicorn.socket` instead of `gunicorn.sock`, which is the actual socket file created by Gunicorn. This misconfiguration prevents Nginx from connecting to Gunicorn.
-```bash
-server {
-    listen 80;
-
-    location / {
-        include proxy_params;
-        proxy_pass http://unix:/run/gunicorn.socket;
-    }
-}
-```
-Resulting in a 502 Bad Gateway error when curling localhost
-
-3. The Gunicorn socket file is created with root ownership and permissions that allow read and write access to all users (`srw-rw-rw- 1 root root`), which is not secure. Additionally, Nginx runs under the `www-data` user, which may not have the necessary permissions to access the socket file owned by root.
+2. The Gunicorn socket file is created with root ownership and permissions that allow read and write access to all users (`srw-rw-rw- 1 root root`), which is not secure. Additionally, Nginx runs under the `www-data` user, which may not have the necessary permissions to access the socket file owned by root and the file extension should be `.socket`.
 ```bash
 srw-rw-rw- 1 root root 0 Dec 27 04:32 /run/gunicorn.sock
 ```
-4. The Gunicorn service file specifies the group as `admin`, while Nginx runs under the `www-data` group. This mismatch can lead to permission issues when Nginx tries to access the Gunicorn socket.
+3. The Gunicorn service file specifies the group as `admin`, while Nginx runs under the `www-data` group. This mismatch can lead to permission issues when Nginx tries to access the Gunicorn socket.
 ```bash
 [Unit]
 Description=gunicorn daemon
@@ -55,19 +41,7 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
-5. The Gunicorn socket file does not specify a user or group, defaulting to root ownership. This can lead to permission issues when Nginx, running as `www-data`, attempts to access the socket.
-```bash
-[Unit]
-Description=gunicorn socket
-
-[Socket]
-ListenStream=/run/gunicorn.sock
-# SocketUser=nginx
-
-[Install]
-WantedBy=sockets.target
-```
-6. The Gunicorn service file lacks the `:application` suffix in the `ExecStart` command, which is necessary for Gunicorn to locate the WSGI application callable within the `wsgi.py` file.
+4. The Gunicorn service file lacks the `:application` suffix in the `ExecStart` command, which is necessary for Gunicorn to locate the WSGI application callable within the `wsgi.py` file.
 ```bash
 ExecStart=/usr/local/bin/gunicorn \
           --bind unix:/run/gunicorn.sock \
@@ -75,92 +49,78 @@ ExecStart=/usr/local/bin/gunicorn \
 ```
 ## Solution
 1. **Enable and Start Nginx**:
-   - Run the following commands to enable and start the Nginx service:
-   ```bash
-   sudo systemctl enable nginx
-   sudo systemctl start nginx
-   ```
-2. **Correct Nginx Configuration**:
-   - Edit the Nginx configuration file located at `/etc/nginx/sites-available/default` to point to the correct Gunicorn socket file:
-   ```bash
-   server {
-       listen 80;
-
-       location / {
-           include proxy_params;
-           proxy_pass http://unix:/run/gunicorn.sock;
-         }
-   }
-   ```
-   - Reload Nginx to apply the changes:
-   ```bash
-   sudo systemctl restart nginx
-   ```
+- Run the following commands to enable and start the Nginx service:
+```bash
+sudo systemctl enable nginx
+sudo systemctl start nginx
+```
+2. **Update WSGI Python file**:
+The file `wsgi.py` contains an error in the `application` function. The `Content-Length` header should be removed to allow the response to be sent correctly:
+```python
+def application(environ, start_response):
+   start_response('200 OK', [('Content-Type', 'text/html'), ('Content-Length', '0'), ]) # This parameter should be removed
+   return [b'Hello, world!']
+```
+```python
+def application(environ, start_response):
+      start_response('200 OK', [('Content-Type', 'text/html')])
+      return [b'Hello, world!']
+```
 3. **Update Gunicorn Socket File**:
-   - Edit the Gunicorn socket file located at `/etc/systemd/system/gunicorn.socket` to specify the correct user and group:
-   ```bash 
-   [Unit]
-   Description=gunicorn socket
+- Creat a new socket file by running  `sudo vim /etc/systemd/system/gunicorn.socket` to specify the correct user and group:
+```bash 
+[Unit]
+Description=gunicorn socket
 
-   [Socket]
-   ListenStream=/run/gunicorn.sock
-   SocketUser=admin
-   SocketGroup=www-data
-   SocketMode=0660
+[Socket]
+ListenStream=/run/gunicorn.socket
+SocketUser=admin
+SocketGroup=www-data
+SocketMode=0660
 
 
-   [Install]
-   WantedBy=sockets.target
-   ```
-   - Reload the systemd daemon and restart the Gunicorn socket:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl restart gunicorn.socket
-   ```
+[Install]
+WantedBy=sockets.target
+```
+- Reload the systemd daemon and restart the Gunicorn socket:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn.socket
+```
 4. **Update Gunicorn Service File**:
-   - Edit the Gunicorn service file located at `/etc/systemd/system/gunicorn.service` to set the correct group and specify the application callable:
-   ```bash
-   [Unit]
-   Description=gunicorn daemon
-   Requires=gunicorn.socket
-   After=network.target
+- Open the Gunicorn service file file by running  `sudo vim /etc/systemd/system/gunicorn.service` to set the correct group and specify the application callable:
+```bash
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
 
-   [Service]
-   User=admin
-   Group=www-data
-   WorkingDirectory=/home/admin
-   ExecStart=/usr/local/bin/gunicorn \
-     --workers 3 \
-     wsgi:application
-   Restart=on-failure
+[Service]
+User=admin
+Group=www-data
+WorkingDirectory=/home/admin
+ExecStart=/usr/local/bin/gunicorn \
+   --workers 3 \
+   wsgi:application
+Restart=on-failure
 
-   [Install]
-   WantedBy=multi-user.target
-   ```
-   - Reload the systemd daemon and restart the Gunicorn service:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl restart gunicorn.service
-   ```
-5. Lastly, **WSGI Python file** contains an error in the `application` function. The `Content-Length` header should be removed before returning from the response headers:
-  ```python
-  def application(environ, start_response):
-    start_response('200 OK', [('Content-Type', 'text/html'), ('Content-Length', '0'), ])
-    return [b'Hello, world!']
-   ```
-   ```python
-   def application(environ, start_response):
-       start_response('200 OK', [('Content-Type', 'text/html')])
-       return [b'Hello, world!']
-   ```
-6. **Verify the Setup**:
-   - Check the status of both Nginx and Gunicorn services to ensure they are active and running:
-   ```bash
-   sudo systemctl status nginx
-   sudo systemctl status gunicorn
-   ```
-   - Test the setup by curling localhost:
-   ```bash
-   curl http://localhost
-   ```
-   - You should receive the response "Hello, world!" indicating that the setup is functioning correctly.
+[Install]
+WantedBy=multi-user.target
+```
+- Reload the systemd daemon and restart the Gunicorn service:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart gunicorn.service
+```
+
+## Verification
+- Check the status of both Nginx and Gunicorn services to ensure they are active and running:
+```bash
+sudo systemctl status nginx
+sudo systemctl status gunicorn
+```
+- Test the setup by curling localhost:
+```bash
+curl -s http://localhost
+```
+- You should receive the response "Hello, world!" indicating that the setup is functioning correctly.
