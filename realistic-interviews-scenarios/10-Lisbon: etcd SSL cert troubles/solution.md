@@ -1,6 +1,6 @@
 # Solution for Lisbon: etcd SSL cert trouble
 ## Description:
-There's an etcd server running on https://localhost:2379 , get the value for the key "foo", ie etcdctl get foo or curl https://localhost:2379/v2/keys/foo
+There's an etcd server running on https://localhost:2379, get the value for the key "foo", ie etcdctl get foo or curl https://localhost:2379/v2/keys/foo
 
 
 ## Problem Analysis
@@ -48,7 +48,7 @@ depth=0 C = AU, ST = Some-State, O = Internet Widgits Pty Ltd, CN = localhost
 notAfter=Jan 30 00:02:48 2023 GMT
 verify return:1
 ```
-3. A redirect rule in iptables is present to forward traffic from port 2379 to port 443, where a nginx server is running.
+3. After addressing the certificate expiration issue, the curl command proceeds further but encounters an iptables redirect rule that forwards traffic from port 2379 to port 443.
 Resulting in a 404 http error when trying to access etcd.
 ```bash
 curl -v https://localhost:2379/v2/keys/foo
@@ -116,11 +116,22 @@ Chain OUTPUT (policy ACCEPT 30 packets, 1938 bytes)
 sudo date -s "2023-01-01 00:00:00"
 ```
 2. **Delete the iptables redirect rule** to ensure traffic to port 2379 reaches the etcd server directly.
+Run the following command to find the rule number and delete it:
 ```bash
-sudo iptables -t nat -D OUTPUT -p tcp --dport 2379 -j REDIRECT --to-ports 443
+sudo iptables -t nat -L OUTPUT --line-numbers -n -v
+Chain OUTPUT (policy ACCEPT 25 packets, 1585 bytes)
+num   pkts bytes target     prot opt in     out     source               destination
+1       17  1020 REDIRECT   tcp  --  *      lo      0.0.0.0/0            0.0.0.0/0            tcp dpt:2379 redir ports 443
+2        0     0 DOCKER     all  --  *      *       0.0.0.0/0           !127.0.0.0/8          ADDRTYPE match dst-type LOCAL
 ```
-3. **Run curl command again** to verify that the etcd server is accessible and returns the expected value for the key "foo".
+As we can see, the rule number is 1. Now delete it using:
 ```bash
-curl -v https://localhost:2379/v2/keys/foo
+sudo iptables -t nat -D OUTPUT 1
+```
+
+## Verification
+After setting the system date and deleting the iptables redirect rule, run the curl command again to verify that we can successfully retrieve the value for the key "foo":
+```bash
+curl -s https://localhost:2379/v2/keys/foo
 {"action":"get","node":{"key":"/foo","value":"bar","modifiedIndex":4,"createdIndex":4}}
 ```
