@@ -1,8 +1,9 @@
 # Solution for Kihei: Surely Not Another Disk Space Scenario
 ## Description
 There is a /home/admin/kihei program. Make the changes necessary so it runs succesfully, without deleting the /home/admin/datafile file.
+
 ## Problem Analysis
-Running ./home/admin/kihei results in a panic error and the program exits without creating a new file /home/admin/newdatafile.
+Running the program results in a panic error and the program exits without creating a new file /home/admin/newdatafile.
 ```bash
 ./kihei -v
 Creating file /home/admin/data/newdatafile with size 1.5GB...
@@ -27,9 +28,10 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/nvme0n1p1  7.7G  6.7G  592M  93% /
 ```
 
-## Solution Steps
+## Solution
 1. **Free Up Disk Space**: Identify and remove unnecessary files or move them to another partition with more available space to free up enough space for the kihei program to create the new file. But as specified, we cannot delete /home/admin/datafile.
-2. **Create a LVM Logical Volume**: If the partition is part of a LVM setup, consider extending the logical volume to increase the available space.
+2. **Create a LVM Logical Volume**: If there are unused disks available on the system, we can create a new LVM logical volume, format it, and mount it to /home/admin/data to provide additional space for the kihei program to create the new file.
+First, check for available disks that can be used to create a new LVM logical volume.
 ```bash
 lsblk -l
 NAME       MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
@@ -56,5 +58,12 @@ df -h /home/admin/data
 Filesystem                   Size  Used Avail Use% Mounted on
 /dev/mapper/vg_data-lv_data  2.0G   24K  1.9G   1% /home/admin/data
 ```
-3. **Verify the Changes**: Run the kihei program again to verify that it can now create the new file successfully.
+
+## Verification
+Run the kihei program again to verify that it can now create the new file successfully.
 It should complete without errors this time and the output should return done.
+```bash
+./kihei -v
+Creating file /home/admin/data/newdatafile with size 1.5GB...
+Done.
+```
