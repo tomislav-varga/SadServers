@@ -31,6 +31,30 @@ Running this command will create a new CSV file named `fixed.csv` with the forma
 mlr --icsv check fixed.csv
 # No output means the file is valid now.
 ```
+
+To retrieve the header of the fixed CSV file, you can run:
+```bash
+head -n 1 fixed.csv | tr ',' '\n' | nl -ba
+     1  Province
+     2  Electoral District Name/Nom de circonscription
+     3  Electoral District Number/Numéro de circonscription
+     4  Population
+     5  Electors/Électeurs
+     6  Polling Stations/Bureaux de scrutin
+     7  Valid Ballots/Bulletins valides
+     8  Percentage of Valid Ballots /Pourcentage des bulletins valides
+     9  Rejected Ballots/Bulletins rejetés
+    10  Percentage of Rejected Ballots /Pourcentage des bulletins rejetés
+    11  Total Ballots Cast/Total des bulletins déposés
+    12  Percentage of Voter Turnout/Pourcentage de la participation électorale
+    13  Elected Candidate/Candidat élu
+```
+The relevant columns for our analysis are:
+- Electoral District Name/Nom de circonscription (Column 2)
+- Population (Column 4)
+- Rejected Ballots/Bulletins rejetés (Column 9)
+
+
 ### Solution using Python
 1. **Process the fixed CSV file using Python**:
 ```python
@@ -111,7 +135,7 @@ mlr --icsv --opprint \
 Population District Rejected
 99518      Montcalm 1226
 ```
-Proceed to save "Montcalm" in the solution file as shown above.
+Proceed to save "Montcalm" in the solution file as shown in step 3.
 
 ## Verification
 To verify the solution, you can check the contents of the `/home/admin/mysolution` file:
