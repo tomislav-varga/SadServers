@@ -22,7 +22,7 @@ services:
       - ./custom_index/nginx_0:/usr/share/nginx/html
       - ./custom-nginx_0.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
-      - frontend_network
+      - frontend_network # nginx_0 is on the frontend_network
 
   nginx_1:
     image: nginx:1.25.3
@@ -32,7 +32,7 @@ services:
       - ./custom_index/nginx_1:/usr/share/nginx/html
       - ./custom-nginx_1.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
-      - backend_network
+      - backend_network # nginx_1 is on the backend_network
 
   haproxy:
     image: haproxy:2.8.4
@@ -57,7 +57,7 @@ networks:
 The configuration of nginx_1 also shows that it is listening on port 81 instead of the default port 80:
 ```cfg
 server {
-    listen 81;
+    listen 81; # port 81 instead of 80
 
     server_name localhost;
 
@@ -66,6 +66,28 @@ server {
         index  index.html;
     }
 }
+```
+While HAProxy is trying to connect to nginx_1 on port 80. The relevant section of the HAProxy configuration file haproxy.cfg is as follows:
+```cfg
+global
+    daemon
+    maxconn 256
+
+defaults
+    mode http
+    default-server init-addr last,libc,none
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+
+frontend http-in
+    bind *:5000
+    default_backend nginx_backends
+
+backend nginx_backends
+    balance roundrobin
+    server nginx_0 nginx_0:80 check
+    server nginx_1 nginx_1:80 check 
 ```
 
 ### Root Cause
