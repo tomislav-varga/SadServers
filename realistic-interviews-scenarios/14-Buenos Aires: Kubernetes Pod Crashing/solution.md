@@ -7,6 +7,11 @@ Do not change the K8S definition of the logshipper pod. Use "sudo".
 Because k8s takes a minute or two to change the pod state initially, the check for the scenario is made to fail in the first two minutes. 
 
 ## Problem Analysis
+To analyze the issue, we first need to check the status of the pods in the default namespace using the `kubectl get pods` command:
+```bash
+sudo kubectl get pods -n default
+```
+This reveals the name of the logshipper pod, which is `logshipper-597f84bf4f-6ssjq`.
 Checking the status of the pod using `kubectl describe pods logshipper-597f84bf4f-6ssjq` reveals that the logshipper pod is in a CrashLoopBackOff state.
 ```bash
 Events:
