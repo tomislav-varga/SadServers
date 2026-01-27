@@ -70,20 +70,33 @@ cd /home/admin/app
 ```
 The Dockerfile has an extenstion .app, so we need to specify it during the build process.
 ```bash
-docker build -t app -f Dockerfile.app .
 docker stop  golang-app
 docker rm golang-app
+docker build --no-cache -t app -f Dockerfile.app .
 docker run -d --name app-container -p 9000:9000 app
 ```
 
 ## Verification
 After making these changes and restarting the application, we can verify that the `/metrics` endpoint is now accessible using the `GET` method:
 ```bash
- curl http://localhost:9000/metrics | tail -n 3
+curl -v  http://localhost:9000/metrics | head -1
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-100  5875    0  5875    0     0  1912k      0 --:--:-- --:--:-- --:--:-- 2868k
-promhttp_metric_handler_requests_total{code="200"} 4
-promhttp_metric_handler_requests_total{code="500"} 0
-promhttp_metric_handler_requests_total{code="503"} 0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 127.0.0.1:9000...
+* Connected to localhost (127.0.0.1) port 9000 (#0)
+> GET /metrics HTTP/1.1
+> Host: localhost:9000
+> User-Agent: curl/7.74.0
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Content-Type: text/plain; version=0.0.4; charset=utf-8; escaping=values
+< Date: Tue, 27 Jan 2026 03:53:00 GMT
+< Transfer-Encoding: chunked
+<
+{ [3939 bytes data]
+# HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
+100  5876    0  5876    0     0  5738k      0 --:--:-- --:--:-- --:--:-- 5738k
+* Connection #0 to host localhost left intact
 ```
