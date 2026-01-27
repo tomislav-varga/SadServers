@@ -19,7 +19,7 @@ The error indicates that the hostname `webapp` cannot be resolved. This is likel
 ```
 The webapp service is running, which is a good sign.
 ```bash
-journalctl -u webapp.service - since "10 minutes ago"
+journalctl -u webapp.service --since "10 minutes ago"
 Jan 15 02:53:14 i-08e9c197ea0e519fd webapp[621]: 2026/01/15 02:53:14 open /home/webapp/pki/server.crt: permission denied
 Jan 15 02:53:14 i-08e9c197ea0e519fd webapp[621]: 2026/01/15 02:53:14 open /home/webapp/pki/server.pem: permission denied
 Jan 15 02:53:14 i-08e9c197ea0e519fd webapp[621]: 2026/01/15 02:53:14 can not access certificate/key file. sleeping for 10s and will retry
@@ -35,13 +35,22 @@ drwxr-xr-x 4 webapp webapp 4096 Apr 10  2024 ..
 -rw-r----- 1 admin  admin  1927 Apr 10  2024 server.crt
 -rw-r----- 1 admin  admin  3247 Apr 10  2024 server.pem
 ```
-The ownership and permissions of the `/home/webapp/pki` directory and its contents are incorrect. The files are owned by `admin:admin`, and the web application likely runs under the `webapp` user, which does not have permission to read these files.
+The ownership and permissions of the `/home/webapp/pki` directory and its contents are incorrect. The files are owned by `admin:admin`. 
 ```bash
- ls -ld webapp/
-drwxr-xr-x 4 webapp webapp 4096 Apr 10  2024 webapp/
-admin@i-08e9c197ea0e519fd:/home$ 
-ls -ld webapp/static-files/
-drwxr-xr-x 2 admin admin 4096 Apr 10  2024 webapp/static-files/
+cat /etc/passwd | grep webapp
+webapp:x:1001:1001::/home/webapp:/usr/bin/false
+```
+The web application runs under the `webapp` user, which does not have permission to read these files.
+```bash
+ls -la /home/webapp
+total 28
+drwxr-xr-x 4 webapp webapp 4096 Apr 10  2024 .
+drwxr-xr-x 4 root   root   4096 Apr 10  2024 ..
+-rw-r--r-- 1 webapp webapp  220 Mar 27  2022 .bash_logout
+-rw-r--r-- 1 webapp webapp 3526 Mar 27  2022 .bashrc
+-rw-r--r-- 1 webapp webapp  807 Mar 27  2022 .profile
+drwx------ 2 root   root   4096 Apr 10  2024 pki
+drwxr-xr-x 2 admin  admin  4096 Apr 10  2024 static-files
 ```
 Checking the `static-files` directory, it is owned by `admin:admin`, which may also cause permission issues when the web application tries to serve static files.
 
@@ -61,7 +70,7 @@ sudo chown -R webapp:webapp /home/webapp/
 ```
 After changing the ownership, we should verify that the permissions are correct:
 ```bash
-ls -la /home/webapp/pki
+sudo ls -la /home/webapp/pki
 ```
 The output should show that `server.crt` and `server.pem` are now owned by `webapp:webapp`.
 Finally, we can restart the web application service to apply the changes:
