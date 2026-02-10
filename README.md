@@ -7,6 +7,7 @@ This repository contains solutions for realistic interview scenarios from [sadse
 Below is a list of all available solutions. Each folder contains detailed documentation and step-by-step solutions for the respective scenario:
 
 - [Bilbao: Basic Kubernetes Problems](realistic-interviews-scenarios/1-Bilbao:%20Basic%20Kubernetes%20Problems)
+- [Practical Linux Server Review](realistic-interviews-scenarios/2-Linux-Server-Review)
 - [Kampot: A New Port](realistic-interviews-scenarios/3-Kampot:%20A%20New%20Port)
 - [Manhattan: can't write data into database.](realistic-interviews-scenarios/5-Manhattan:%20can't%20write%20data%20into%20database.)
 - [Tokyo: can't serve web file](realistic-interviews-scenarios/6-Tokyo:%20can't%20serve%20web%20file)
