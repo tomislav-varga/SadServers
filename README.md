@@ -24,6 +24,7 @@ Below is a list of all available solutions. Each folder contains detailed docume
 - [Moyogalpa: Security Snag. The Trials of Mary and John](realistic-interviews-scenarios/17-Moyogalpa:%20Security%20Snag.%20The%20Trials%20of%20Mary%20and%20John)
 - [Helsingør: The first walls of postgres physical replication](realistic-interviews-scenarios/18-Helsingør:%20The%20first%20walls%20of%20postgres%20physical%20replication)
 - [Bekasi: Supervisor is still around](realistic-interviews-scenarios/19-Bekasi:%20Supervisor%20is%20still%20around)
+- [Nerdearla Buenos Aires: Troubleshoot "A" no se conecta con "B"](realistic-interviews-scenarios/20-Nerdearla%20Buenos%20Aires:%20Troubleshoot%20%22A%22%20no%20se%20conecta%20con%20%22B%22)
 
 ## About
 
