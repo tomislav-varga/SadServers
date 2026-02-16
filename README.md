@@ -25,6 +25,7 @@ Below is a list of all available solutions. Each folder contains detailed docume
 - [Helsingør: The first walls of postgres physical replication](realistic-interviews-scenarios/18-Helsingør:%20The%20first%20walls%20of%20postgres%20physical%20replication)
 - [Bekasi: Supervisor is still around](realistic-interviews-scenarios/19-Bekasi:%20Supervisor%20is%20still%20around)
 - [Nerdearla Buenos Aires: Troubleshoot "A" no se conecta con "B"](realistic-interviews-scenarios/20-Nerdearla%20Buenos%20Aires:%20Troubleshoot%20%22A%22%20no%20se%20conecta%20con%20%22B%22)
+- [Ruaka: Kubernetes pod in distress](realistic-interviews-scenarios/22-Ruaka:%20Kubernetes%20pod%20in%20distress)
 
 ## About
 
