@@ -24,7 +24,7 @@ Warning  Unhealthy               64s (x5 over 84s)     kubelet            Livene
 ```
 
 Looking at the Helm chart values, we see that the liveness and readiness probes are defined as follows:
-```bash
+```yaml
 livenessProbe:
   periodSeconds: 5
   terminationGracePeriodSeconds: 3
