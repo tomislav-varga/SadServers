@@ -26,7 +26,7 @@ Below is a list of all available solutions. Each folder contains detailed docume
 - [Bekasi: Supervisor is still around](realistic-interviews-scenarios/19-Bekasi:%20Supervisor%20is%20still%20around)
 - [Nerdearla Buenos Aires: Troubleshoot "A" no se conecta con "B"](realistic-interviews-scenarios/20-Nerdearla%20Buenos%20Aires:%20Troubleshoot%20%22A%22%20no%20se%20conecta%20con%20%22B%22)
 - [Ruaka: Kubernetes pod in distress](realistic-interviews-scenarios/22-Ruaka:%20Kubernetes%20pod%20in%20distress)
-- [Atlantis: Not Found](realistic-interviews-scenarios/24-Atlantis:%20Not%20Found)
+- [Atlantis: Not Found](realistic-interviews-scenarios/24-Atlantis:%20Not%20found)
 
 ## About
 
