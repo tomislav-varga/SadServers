@@ -93,12 +93,11 @@ spec:
             cpu: 100m
           requests:
             cpu: 100m
-            memory: 2000Mi # The initial request was too high for the node capacity. 
-# --- Initially, the request was too high for the node capacity. The node has only 2048Mi total memory, so we need to lower this, e.g., to 500Mi.
+            memory: 500Mi  # The initial request of 2000Mi was too high for the node capacity. 
+                            # The node has only 2048Mi total memory, so we need to lower this, e.g., to 500Mi.
       nodeSelector:
-        # disk: ssd 
-# --- Initially, the nodeSelector was looking for a label that didn't exist on any node
-# Assigning to a node without the label made scheduling possible
+        # disk: ssd # The nodeSelector was looking for a label that didn't exist on any node
+                    # Assigning to a node without the label made scheduling possible
 
 ---
 apiVersion: v1
